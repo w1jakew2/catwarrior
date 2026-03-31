@@ -1,4 +1,5 @@
 <?php
+header("Access-Control-Allow-Origin: *");
 header("Content-Type: text/plain; charset=utf-8");
 
 if (!isset($_GET['nimi']) || !isset($_GET['pisteet']) || !isset($_GET['taso'])) {
