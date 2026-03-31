@@ -289,6 +289,21 @@ function show_infobox() {
 </head>
 
 <body>
+<div id="leaderboard" style="
+    position:absolute;
+    top:10px;
+    right:10px;
+    background:#222;
+    color:#fff;
+    padding:10px;
+    border-radius:8px;
+    width:160px;
+    font-family:Arial;
+    z-index:9999;
+">
+    <h3 style="margin:0; font-size:16px;">Top Scores</h3>
+    <ul id="scorelist" style="padding-left:20px; margin:5px 0;"></ul>
+</div>
 
     <div id="transfer" align=center>
 <!--        <div class="spinner" id='spinner'></div> -->
@@ -433,6 +448,70 @@ frameborder="1"
     }
 
     </script>
+<script>
+const repo = "w1jakew2/catwarrior";
+const file = "scores.json";
+
+// 🔐 Lisää oma token tähän:
+const token = "GITHUB_TOKEN_TÄHÄN";
+
+// ---------------------------
+// 1) TALLENNA PISTE GITHUBIIN
+// ---------------------------
+async function saveScore(score) {
+    const getRes = await fetch(`https://api.github.com/repos/${repo}/contents/${file}`, {
+        headers: { Authorization: `Bearer ${token}` }
+    });
+
+    const getData = await getRes.json();
+    const sha = getData.sha;
+    const content = JSON.parse(atob(getData.content));
+
+    content.push(score);
+
+    const updateRes = await fetch(`https://api.github.com/repos/${repo}/contents/${file}`, {
+        method: "PUT",
+        headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            message: "Add score",
+            content: btoa(JSON.stringify(content, null, 2)),
+            sha: sha
+        })
+    });
+
+    return updateRes.ok;
+}
+
+// ---------------------------
+// 2) LUE PISTEET GITHUBISTA
+// ---------------------------
+async function loadScores() {
+    const res = await fetch("https://raw.githubusercontent.com/w1jakew2/catwarrior/main/scores.json");
+    const scores = await res.json();
+    scores.sort((a, b) => b - a);
+    return scores.slice(0, 10);
+}
+
+// ---------------------------
+// 3) PÄIVITÄ LEADERBOARD
+// ---------------------------
+async function updateLeaderboard() {
+    const scores = await loadScores();
+    const ul = document.getElementById("scorelist");
+    ul.innerHTML = "";
+
+    scores.forEach(s => {
+        const li = document.createElement("li");
+        li.textContent = s;
+        ul.appendChild(li);
+    });
+}
+
+updateLeaderboard();
+</script>
 
 </body>
 </html>
